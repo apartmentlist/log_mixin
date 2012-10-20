@@ -5,24 +5,48 @@
 # Usage:
 #    class MyClass
 #       include LogMixin
+#       # if you write an initializer, invoke configure_logs there -- see below
 #       ...
 #    end
 #
 #    obj = MyClass.new
-#    obj.configure_logs()    # reasonable default behavior with no params
-#    obj.log("Something happened!")   # default severity is INFO
-#    obj.log("EMERGENCY!", level: :critical)
+#    obj.info("Something happened!")   # default severity is INFO
+#    obj.fatal("EMERGENCY!", level: :critical)
 #
-# Want to hack your tests so that you can temporarily see log messages?
+# Testing the contents of log messages is suspicious, but you may want to
+# test that logging occurred, and in any case, we won't stop you from testing
+# what you want.  Here's how you access the logging from a test:
+#
+#    it 'should log correctly' do
+#      obj = MyClass.new
+#      obj.__handle.msgs.should have(0).messages
+#      obj.do_something_that_logs_twice
+#      obj.__handle.msgs.should have(2).messages
+#      obj.do_something_that_logs_an_error
+#      obj.__handle.msgs.select {|msg| msg =~ /ERROR/}.should have(1).message
+#    end
+#
+# Want to hack your tests so that you temporarily output log messages?
 #      ['TESTING', 'RAILS'].each do |c|
 #        LogMixin.send(:remove_const, c)
 #        LogMixin.const_set(c, false)
 #      end
-
+#
 
 require 'time'   # for time-stamping log messages
 
 module LogMixin
+
+  class Error < StandardError; end
+  class InitError < Error; end
+
+  # If your class has its own initializer, you probably want to invoke
+  # configure_logs in that initializer.  If you don't write an initializer
+  # and use the default, this should suffice.
+  def initialize(*args)
+    super(*args)
+    configure_logs   # with no other info, configure with default params
+  end
 
   ############################## FOR TEST ONLY ##############################
 
@@ -127,6 +151,7 @@ module LogMixin
     [:timestamp, :caller, :severity].each do |key|
       @vblm_format[key] ||= VBLM_DEFAULT_FORMAT[key]
     end
+    @__log_mixin_initialized = true
   end
 
   # For changing log level of a running process, e.g. via HTTP
@@ -187,6 +212,10 @@ module LogMixin
   # and replaced with the Rails logger.
   #
   def log(msg, options={})
+    if not @__log_mixin_initialized
+      raise InitError, "#{self.class} object uses LogMixin " +
+        "but never called configure_logs"
+    end
     default_options = {:level => VBLM_DEFAULT_LOG_LEVEL}
     opts = default_options
     opts.update(options)
@@ -218,12 +247,10 @@ module LogMixin
     end
   end
 
-  def debug(msg, options={}); log(msg, options.merge(level: :debug)); end
-  def info(msg, options={}); log(msg, options.merge(level: :info)); end
-  def warn(msg, options={}); log(msg, options.merge(level: :warning)); end
-  def err(msg, options={}); log(msg, options.merge(level: :error)); end
-  def fatal(msg, options={})
-    log(msg, options.clone.merge(level: :critical))
-  end
+  def debug(msg, options={}); log(msg, options.merge(level: :debug   )); end
+  def  info(msg, options={}); log(msg, options.merge(level: :info    )); end
+  def  warn(msg, options={}); log(msg, options.merge(level: :warning )); end
+  def   err(msg, options={}); log(msg, options.merge(level: :error   )); end
+  def fatal(msg, options={}); log(msg, options.merge(level: :critical)); end
 
 end  # module LogMixin
