@@ -231,4 +231,9 @@ module LogMixin
 
   extend self    # can be invoked as module methods or object methods
   configure_logs
+
+  # The configure_logs call above doesn't apply when some other module extends
+  # LogMixin, so the following call addresses that.
+  def self.extended(base); base.configure_logs; end
+
 end  # module LogMixin
