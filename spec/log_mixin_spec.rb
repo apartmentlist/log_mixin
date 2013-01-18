@@ -17,10 +17,62 @@ describe LogMixin do
     stub(Time).now { FIXED_TIME }
   end
 
+  describe 'initializer behavior' do
+    it 'should work correctly with no initializer in the logging class' do
+      class Dummy2
+        include LogMixin
+        # Grant access to internals for LogMixin module test purposes.
+        # FOR TEST ONLY!  Not a public interface!  Don't try this at home, kids!
+        attr_reader :vblm_log_handles, :vblm_log_level, :vblm_format, :__handle
+      end
+      obj = Dummy2.new
+      obj.__handle.msgs.should have(0).messages
+      obj.info("Test!")
+      obj.__handle.msgs.should have(1).message
+    end
+
+    it 'should work correctly with an initializer that calls configure_logs' do
+      class Dummy3
+        include LogMixin
+        # Grant access to internals for LogMixin module test purposes.
+        # FOR TEST ONLY!  Not a public interface!  Don't try this at home, kids!
+        attr_reader :vblm_log_handles, :vblm_log_level, :vblm_format, :__handle
+        attr_reader :foo
+        def initialize
+          @foo = "bar"
+          configure_logs
+        end
+      end
+      obj = Dummy3.new
+      obj.foo.should == 'bar'
+      obj.__handle.msgs.should have(0).messages
+      obj.info("Test!")
+      obj.__handle.msgs.should have(1).message
+    end
+
+    it 'should NOT work with an initializer that does not configure_logs' do
+      class Dummy4
+        include LogMixin
+        # Grant access to internals for LogMixin module test purposes.
+        # FOR TEST ONLY!  Not a public interface!  Don't try this at home, kids!
+        attr_reader :vblm_log_handles, :vblm_log_level, :vblm_format, :__handle
+        attr_reader :foo
+        def initialize
+          @foo = "bar"
+          # no call to configure_logs -- wrong!
+        end
+      end
+      obj = Dummy4.new
+      obj.foo.should == 'bar'
+      obj.__handle.should be_nil
+      lambda { obj.__handle.msgs }.should raise_error(NoMethodError)
+      lambda { obj.info("Test!") }.should raise_error(LogMixin::InitError)
+    end
+  end
+
   describe '.configure_logs' do
     it 'should set instance vars with default params' do
       obj = Dummy.new
-      obj.configure_logs()
 
       obj.vblm_log_handles.should == [obj.__handle]
       obj.vblm_log_level.should == LogMixin::VBLM_DEFAULT_LOG_LEVEL
@@ -90,7 +142,6 @@ describe LogMixin do
     context 'format options are all defaults' do
       it 'should format correctly' do
         obj = Dummy.new
-        obj.configure_logs()
         msg = "Hello, world!"
         formatted_msg = obj.formattedMessage(msg)
         formatted_msg.should include(msg)
@@ -137,7 +188,6 @@ describe LogMixin do
     end
     it 'should accept symbol severities' do
       obj = Dummy.new
-      obj.configure_logs()
       msg = "Hello, world!"
       formatted_msg = obj.formattedMessage(msg, :log_level => :error)
       formatted_msg.should include(msg)
@@ -201,7 +251,6 @@ describe LogMixin do
     end
     it 'should accept non-standard *message* log levels' do
       obj = Dummy.new
-      obj.configure_logs()
 
       msg1 = "Hello, world!"
       msg2 = "Spam"
