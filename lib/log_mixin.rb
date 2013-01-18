@@ -97,7 +97,10 @@ module LogMixin
   #   Time.strftime
   VBLM_DEFAULT_FORMAT = {
       :timestamp => '[%Y-%m-%d %H:%M:%S] ',
-      :caller => lambda { |obj| obj.class.name + ": " },
+      :caller => lambda do |ob|
+        %{Module Class}.include?(ob.class.name) ?
+           "#{ob.name}: " : "#{ob.class.name}: "
+      end,
       :severity => lambda { |level|
          level = self.log_level_int(level)
          ((level >= 0 and level <= 4) ?
@@ -252,5 +255,12 @@ module LogMixin
   def  warn(msg, options={}); log(msg, options.merge(level: :warning )); end
   def   err(msg, options={}); log(msg, options.merge(level: :error   )); end
   def fatal(msg, options={}); log(msg, options.merge(level: :critical)); end
+
+  extend self    # can be invoked as module methods or object methods
+  configure_logs
+
+  # The configure_logs call above doesn't apply when some other module extends
+  # LogMixin, so the following call addresses that.
+  def self.extended(base); base.configure_logs; end
 
 end  # module LogMixin
