@@ -7,6 +7,9 @@ logging in tests by default but provide access to it when explicitly
 requested, to log to stderr (or Rails.logger) by default but accept other
 logging targets, and other conveniences.
 
+Released under the three-clause BSD open source license.
+http://opensource.org/licenses/BSD-3-Clause
+
 Usage
 ===
 ```
