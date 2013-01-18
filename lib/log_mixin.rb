@@ -73,7 +73,10 @@ module LogMixin
   #   Time.strftime
   VBLM_DEFAULT_FORMAT = {
       :timestamp => '[%Y-%m-%d %H:%M:%S] ',
-      :caller => lambda { |obj| obj.class.name + ": " },
+      :caller => lambda do |ob|
+        %{Module Class}.include?(ob.class.name) ?
+           "#{ob.name}: " : "#{ob.class.name}: "
+      end,
       :severity => lambda { |level|
          level = self.log_level_int(level)
          ((level >= 0 and level <= 4) ?
@@ -226,4 +229,6 @@ module LogMixin
     log(msg, options.clone.merge(level: :critical))
   end
 
+  extend self    # can be invoked as module methods or object methods
+  configure_logs
 end  # module LogMixin

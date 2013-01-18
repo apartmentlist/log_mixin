@@ -369,4 +369,19 @@ describe LogMixin do
     end
   end
 
+  context 'non-instance module usage' do
+    it 'should work when called as a module method' do
+      # Hack the module to provide accessors for testing
+      module LogMixin
+        attr_reader :vblm_log_handles, :vblm_log_level, :vblm_format, :__handle
+      end
+
+      msg1 = "Hello, world!"
+      LogMixin.__handle.msgs.should have(0).messages
+
+      LogMixin.info(msg1)
+      LogMixin.__handle.msgs.should have(1).message
+      LogMixin.__handle.msgs.last.should match(msg1)
+    end
+  end
 end
