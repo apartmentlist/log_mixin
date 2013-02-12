@@ -29,7 +29,7 @@ EOT
 
   s.rubyforge_project = 'log_mixin'
   s.rubygems_version = '>= 1.8.6'
-  s.homepage = 'http://github.com/verticalbrands'
+  s.homepage = 'http://github.com/apartmentlist'
 
   s.add_development_dependency('rspec')
   s.add_development_dependency('rr')
