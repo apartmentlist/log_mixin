@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   end
   s.authors = ['Jon Snitow']
   s.email = ['opensource@verticalbrands.com']
-  s.date = '2012-10-19'
+  s.date = '2013-02-12'
   s.summary = 'Mixin module for easy logging under various circumstances'
   s.description = <<-EOT
 The LogMixin module provides (you guessed it) a mixin to make logging more
