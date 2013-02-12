@@ -11,7 +11,7 @@
 #
 #    obj = MyClass.new
 #    obj.info("Something happened!")   # default severity is INFO
-#    obj.fatal("EMERGENCY!", level: :critical)
+#    obj.fatal("EMERGENCY!")
 #
 # Testing the contents of log messages is suspicious, but you may want to
 # test that logging occurred, and in any case, we won't stop you from testing
@@ -64,11 +64,8 @@ module LogMixin
   ############################## END TEST ONLY ##############################
 
   # If we're running under Rails, then we'll probably want to use the Rails
-  # logging facilities.  (TODO: Add a good Rails auto-detector.)
-  # Until we build in a Rails auto-detector, callers can use this ugly hack:
-  #    LogMixin.send(:remove_const, "RAILS")
-  #    LogMixin.const_set("RAILS", true)
-  RAILS = false
+  # logging facilities.
+  RAILS = Object.constants.include? :Rails
 
   # Log levels: 0 = CRITICAL, 1 = ERROR, 2 = WARNING, 3 = INFO, 4 = DEBUG
   # Any other integer is also valid, but doesn't map to a named level.
