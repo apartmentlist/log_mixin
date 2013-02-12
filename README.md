@@ -83,8 +83,10 @@ end
 c = ChattyInstance.new
 c.info("I'm an instance!")
 ChattyModule.info("I'm a module!")
+LogMixin.info("You can even log with LogMixin itself...")
+LogMixin.warn("...but 'mixin' is a bit of a misnomer in that case.")
 ```
 
 Want to change the log message format?  You have lots of flexibility.  See
-the documentation for #configure_logs and VBLM_DEFAULT_FORMAT.
+the documentation for ```#configure_logs``` and ```VBLM_DEFAULT_FORMAT```.
 
